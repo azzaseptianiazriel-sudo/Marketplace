@@ -1,0 +1,9 @@
+<?php
+require_once __DIR__.'/includes/db.php';require_once __DIR__.'/includes/functions.php';
+if(is_logged_in())redirect(current_user()['role']==='admin'?'admin/dashboard.php':'index.php');
+$error='';
+if($_SERVER['REQUEST_METHOD']==='POST'){verify_csrf();$email=trim($_POST['email']??'');$password=$_POST['password']??'';$s=$conn->prepare("SELECT id,name,email,password,role FROM users WHERE email=? LIMIT 1");$s->bind_param('s',$email);$s->execute();$u=$s->get_result()->fetch_assoc();if($u&&password_verify($password,$u['password'])){session_regenerate_id(true);$_SESSION['user']=['id'=>(int)$u['id'],'name'=>$u['name'],'email'=>$u['email'],'role'=>$u['role']];set_flash('Selamat datang, '.$u['name'].'!');redirect($u['role']==='admin'?'admin/dashboard.php':'index.php');}$error='Email atau password salah.';}
+$page_title='Masuk';require_once __DIR__.'/includes/header.php';
+?>
+<div class="auth-wrap"><div class="surface-card auth-card p-4 p-md-5"><div class="text-center mb-4"><div class="auth-icon">MK</div><h1 class="h3 fw-bold">Masuk ke MarketKita</h1><p class="text-secondary">Satu halaman login untuk Admin dan Pembeli.</p></div><?php if($error): ?><div class="alert alert-danger"><?= e($error) ?></div><?php endif; ?><form method="post"><input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>"><div class="mb-3"><label class="form-label">Email</label><input class="form-control form-control-lg" type="email" name="email" required></div><div class="mb-3"><label class="form-label">Password</label><input class="form-control form-control-lg" type="password" name="password" required></div><button class="btn btn-primary btn-lg w-100">Masuk</button></form><p class="text-center mt-3 mb-0">Belum punya akun? <a href="<?= e(url('register.php')) ?>">Daftar sebagai Pembeli</a></p></div></div>
+<?php require_once __DIR__.'/includes/footer.php'; ?>
